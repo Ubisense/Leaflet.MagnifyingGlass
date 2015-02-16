@@ -1,4 +1,4 @@
-﻿
+
 L.MagnifyingGlass = L.Class.extend({
   includes: L.Mixin.Events,
 
@@ -16,6 +16,7 @@ L.MagnifyingGlass = L.Class.extend({
     this._fixedZoom = (this.options.fixedZoom != -1);
     this._mainMap = null;
     this._glassMap = null;
+    this.zoomOffset = this.options.zoomOffset;
   },
 
   getMap: function(){
@@ -35,7 +36,7 @@ L.MagnifyingGlass = L.Class.extend({
       zoomControl: false,
       boxZoom: false,
       touchZoom: false,
-      scrollWheelZoom: false,
+      scrollWheelZoom: this.options.scrollWheelZoom,
       doubleClickZoom: false,
       dragging: false,
       keyboard: false,
@@ -45,11 +46,15 @@ L.MagnifyingGlass = L.Class.extend({
   _getZoom: function() {
     return (this._fixedZoom) ?
       this.options.fixedZoom :
-      this._mainMap.getZoom() + this.options.zoomOffset;
+      this._mainMap.getZoom() + this.zoomOffset;
   },
 
   _updateZoom: function() {
     this._glassMap.setZoom(this._getZoom());
+  },
+  
+  _updateZoomOffset: function() {
+    this.zoomOffset = this._glassMap.getZoom() - this._mainMap.getZoom();
   },
 
   setRadius: function(radius) {
@@ -117,6 +122,7 @@ L.MagnifyingGlass = L.Class.extend({
         this._mainMap.on('mousemove', this._updateFromMouse, this);
         if(!this._fixedZoom) {
           this._mainMap.on('zoomend', this._updateZoom, this);
+          this._glassMap.on('zoomend', this._updateZoomOffset, this);
         }
       }
     }, this);
